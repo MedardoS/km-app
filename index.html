@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Control KM</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#007bff">
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<style>
+body {
+  font-family: Arial;
+  background: #eef1f5;
+  margin: 0;
+}
+
+.container {
+  padding: 15px;
+  max-width: 600px;
+  margin: auto;
+}
+
+h2 {
+  text-align: center;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+input {
+  width: 100%;
+  margin: 6px 0;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+}
+
+button {
+  width: 100%;
+  margin: 6px 0;
+  padding: 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: none;
+  background: #007bff;
+  color: white;
+}
+
+button:active {
+  background: #0056b3;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h2>🚗 Control de KM</h2>
+
+  <!-- USUARIO (solo una vez) -->
+  <div class="card">
+    <input id="usuario" placeholder="Tu nombre o código">
+    <button onclick="guardarUsuario()">Guardar Usuario</button>
+  </div>
+
+  <!-- FORMULARIO -->
+  <div class="card">
+    <input id="origen" placeholder="Local Origen">
+    <input id="codigo" placeholder="Código FOX">
+    <input id="fecha" type="date">
+    <input id="guia" placeholder="Guía">
+    <input id="kmReales" type="number" placeholder="KM Reales">
+    <input id="kmCargados" type="number" placeholder="KM Cargados">
+    <input id="detalle" placeholder="Detalle">
+  </div>
+
+  <!-- BOTONES -->
+  <div class="card">
+    <button onclick="agregar()">Guardar</button>
+    <button onclick="generarExcel()">Generar Excel</button>
+  </div>
+
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCyC2SiRaj50tO7LARJQMtucbgnuzLB1x0",
+  authDomain: "km3-app.firebaseapp.com",
+  projectId: "km3-app",
+  storageBucket: "km3-app.firebasestorage.app",
+  messagingSenderId: "637522836765",
+  appId: "1:637522836765:web:40b52614495cb7f96075f4"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+</script>
+
+<script src="app.js"></script>
+
+</body>
+</html>
