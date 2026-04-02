@@ -64,42 +64,63 @@ async function generarExcel() {
   const usuario = obtenerUsuario();
 
   if (!usuario) {
-    alert("No hay usuario");
+    alert("❌ No hay usuario guardado");
     return;
   }
 
-  const snapshot = await db.collection("recorridos")
-    .where("usuario", "==", usuario)
-    .get();
+  try {
+    const snapshot = await db.collection("recorridos")
+      .where("usuario", "==", usuario)
+      .get();
 
-  let excelData = [
-    ["LOCAL ORIGEN", "CÓDIGO FOX", "FECHA", "GUÍA",
-     "KM REALES", "KM CARGADOS", "DIFERENCIA", "VALOR", "DETALLE"]
-  ];
+    console.log("Datos encontrados:", snapshot.size);
 
-  snapshot.forEach(doc => {
-    const d = doc.data();
+    if (snapshot.empty) {
+      alert("⚠️ No hay registros para este usuario");
+      return;
+    }
 
-    const diferencia = d.kmReales - d.kmCargados;
-    const valor = diferencia * VALOR_KM;
+    let excelData = [
+      ["LOCAL ORIGEN", "CÓDIGO FOX", "FECHA", "GUÍA",
+       "KM REALES", "KM CARGADOS", "DIFERENCIA", "VALOR", "DETALLE"]
+    ];
 
-    excelData.push([
-      d.origen,
-      d.codigo,
-      d.fecha,
-      d.guia,
-      d.kmReales,
-      d.kmCargados,
-      diferencia,
-      valor,
-      d.detalle
-    ]);
-  });
+    snapshot.forEach(doc => {
+      const d = doc.data();
 
-  const ws = XLSX.utils.aoa_to_sheet(excelData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+      const kmReales = Number(d.kmReales) || 0;
+      const kmCargados = Number(d.kmCargados) || 0;
 
-  // nombre del archivo con usuario
-  XLSX.writeFile(wb, `reporte_km_${usuario}.xlsx`);
+      const diferencia = kmReales - kmCargados;
+      const valor = diferencia * 270;
+
+      excelData.push([
+        d.origen || "",
+        d.codigo || "",
+        d.fecha || "",
+        d.guia || "",
+        kmReales,
+        kmCargados,
+        diferencia,
+        valor,
+        d.detalle || ""
+      ]);
+    });
+
+    // Crear Excel
+    const ws = XLSX.utils.aoa_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+
+    // Nombre del archivo con usuario
+    const nombreArchivo = `reporte_km_${usuario}.xlsx`;
+
+    XLSX.writeFile(wb, nombreArchivo);
+
+    alert("📄 Excel generado correctamente");
+
+  } catch (error) {
+    console.error("Error:", error);
+    alert("❌ Error al generar Excel");
+  }
 }
