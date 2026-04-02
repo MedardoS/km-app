@@ -111,40 +111,42 @@ async function generarExcel() {
 
     let excelData = [
       ["LOCAL ORIGEN", "CÓDIGO FOX", "FECHA", "GUÍA",
-       "KM REALES", "KM CARGADOS", "DIFERENCIA", "VALOR", "DETALLE"]
+       "KM REALES", "KM PAGADOS", "DIFERENCIA", "VALOR", "KM/SKU", "DETALLE"]
     ];
 
     snapshot.forEach(doc => {
       const d = doc.data();
 
       const kmReales = Number(d.kmReales) || 0;
-      const kmCargados = Number(d.kmCargados) || 0;
+      const kmPagados = Number(d.kmCargados) || 0;
 
-      const diferencia = kmReales - kmCargados;
-      const valor = diferencia * VALOR_KM;
+      const diferencia = kmReales - kmPagados;
+      const valor = diferencia * 270;
 
       excelData.push([
         d.origen || "",
-        d.codigo || "",
+        d.codigo || "FOX",
         d.fecha || "",
         d.guia || "",
         kmReales,
-        kmCargados,
+        kmPagados,
         diferencia,
         valor,
+        "", // KM/SKU vacío por ahora
         d.detalle || ""
       ]);
     });
 
     const ws = XLSX.utils.aoa_to_sheet(excelData);
+
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Reporte");
+    XLSX.utils.book_append_sheet(wb, ws, "Planilla");
 
     const nombreArchivo = `reporte_km_${usuario}.xlsx`;
 
     XLSX.writeFile(wb, nombreArchivo);
 
-    alert("📄 Excel generado correctamente");
+    alert("📄 Excel generado con formato empresa");
 
   } catch (error) {
     console.error(error);
