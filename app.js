@@ -1,30 +1,40 @@
 const VALOR_KM = 270;
 
-// guardar usuario una sola vez
+// =======================
+// USUARIO
+// =======================
+
 function guardarUsuario() {
-  const usuario = document.getElementById("usuario").value;
+  let usuario = document.getElementById("usuario").value;
 
   if (!usuario) {
     alert("Ingresa tu nombre");
     return;
   }
 
+  // normalizar
+  usuario = usuario.trim().toLowerCase();
+
   localStorage.setItem("usuario", usuario);
+  document.getElementById("usuario").value = usuario;
+
   alert("✅ Usuario guardado");
 }
 
-// obtener usuario guardado
 function obtenerUsuario() {
   return localStorage.getItem("usuario");
 }
 
-// cargar usuario al iniciar
 window.onload = function () {
   const usuario = obtenerUsuario();
   if (usuario) {
     document.getElementById("usuario").value = usuario;
   }
 };
+
+// =======================
+// GUARDAR DATOS
+// =======================
 
 async function agregar() {
   const usuario = obtenerUsuario();
@@ -34,40 +44,68 @@ async function agregar() {
     return;
   }
 
-  const nuevo = {
-    usuario,
-    origen: document.getElementById("origen").value,
-    codigo: document.getElementById("codigo").value,
-    fecha: document.getElementById("fecha").value,
-    guia: document.getElementById("guia").value,
-    kmReales: parseFloat(document.getElementById("kmReales").value),
-    kmCargados: parseFloat(document.getElementById("kmCargados").value),
-    detalle: document.getElementById("detalle").value,
-    fechaRegistro: new Date()
-  };
+  const origen = document.getElementById("origen").value;
+  const codigo = document.getElementById("codigo").value;
+  const fecha = document.getElementById("fecha").value;
+  const guia = document.getElementById("guia").value;
+  const kmReales = parseFloat(document.getElementById("kmReales").value);
+  const kmCargados = parseFloat(document.getElementById("kmCargados").value);
+  const detalle = document.getElementById("detalle").value;
 
-  await db.collection("recorridos").add(nuevo);
+  if (!origen || !codigo || !fecha) {
+    alert("Completa los campos obligatorios");
+    return;
+  }
 
-  alert("✅ Guardado en la nube");
+  try {
+    await db.collection("recorridos").add({
+      usuario: usuario.trim().toLowerCase(),
+      origen,
+      codigo,
+      fecha,
+      guia,
+      kmReales: kmReales || 0,
+      kmCargados: kmCargados || 0,
+      detalle,
+      fechaRegistro: new Date()
+    });
 
-  // limpiar campos
-  document.getElementById("origen").value = "";
-  document.getElementById("codigo").value = "";
-  document.getElementById("fecha").value = "";
-  document.getElementById("guia").value = "";
-  document.getElementById("kmReales").value = "";
-  document.getElementById("kmCargados").value = "";
-  document.getElementById("detalle").value = "";
+    alert("✅ Guardado en la nube");
+
+    // limpiar campos
+    document.getElementById("origen").value = "";
+    document.getElementById("codigo").value = "";
+    document.getElementById("fecha").value = "";
+    document.getElementById("guia").value = "";
+    document.getElementById("kmReales").value = "";
+    document.getElementById("kmCargados").value = "";
+    document.getElementById("detalle").value = "";
+
+  } catch (error) {
+    console.error(error);
+    alert("❌ Error al guardar");
+  }
 }
 
-async function generarExcel() {
-  try {
-    const snapshot = await db.collection("recorridos").get();
+// =======================
+// GENERAR EXCEL
+// =======================
 
-    alert("Registros encontrados: " + snapshot.size);
+async function generarExcel() {
+  const usuario = obtenerUsuario()?.trim().toLowerCase();
+
+  if (!usuario) {
+    alert("❌ No hay usuario guardado");
+    return;
+  }
+
+  try {
+    const snapshot = await db.collection("recorridos")
+      .where("usuario", "==", usuario)
+      .get();
 
     if (snapshot.empty) {
-      alert("No hay datos en Firebase");
+      alert("⚠️ No hay registros para este usuario");
       return;
     }
 
@@ -83,7 +121,7 @@ async function generarExcel() {
       const kmCargados = Number(d.kmCargados) || 0;
 
       const diferencia = kmReales - kmCargados;
-      const valor = diferencia * 270;
+      const valor = diferencia * VALOR_KM;
 
       excelData.push([
         d.origen || "",
@@ -102,12 +140,14 @@ async function generarExcel() {
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Reporte");
 
-    XLSX.writeFile(wb, "reporte_prueba.xlsx");
+    const nombreArchivo = `reporte_km_${usuario}.xlsx`;
 
-    alert("Excel generado con datos");
+    XLSX.writeFile(wb, nombreArchivo);
+
+    alert("📄 Excel generado correctamente");
 
   } catch (error) {
     console.error(error);
-    alert("Error al generar Excel");
+    alert("❌ Error al generar Excel");
   }
 }
