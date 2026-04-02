@@ -61,22 +61,13 @@ async function agregar() {
 }
 
 async function generarExcel() {
-  const usuario = obtenerUsuario();
-
-  if (!usuario) {
-    alert("❌ No hay usuario guardado");
-    return;
-  }
-
   try {
-    const snapshot = await db.collection("recorridos")
-      .where("usuario", "==", usuario)
-      .get();
+    const snapshot = await db.collection("recorridos").get();
 
-    console.log("Datos encontrados:", snapshot.size);
+    alert("Registros encontrados: " + snapshot.size);
 
     if (snapshot.empty) {
-      alert("⚠️ No hay registros para este usuario");
+      alert("No hay datos en Firebase");
       return;
     }
 
@@ -107,20 +98,16 @@ async function generarExcel() {
       ]);
     });
 
-    // Crear Excel
     const ws = XLSX.utils.aoa_to_sheet(excelData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Reporte");
 
-    // Nombre del archivo con usuario
-    const nombreArchivo = `reporte_km_${usuario}.xlsx`;
+    XLSX.writeFile(wb, "reporte_prueba.xlsx");
 
-    XLSX.writeFile(wb, nombreArchivo);
-
-    alert("📄 Excel generado correctamente");
+    alert("Excel generado con datos");
 
   } catch (error) {
-    console.error("Error:", error);
-    alert("❌ Error al generar Excel");
+    console.error(error);
+    alert("Error al generar Excel");
   }
 }
