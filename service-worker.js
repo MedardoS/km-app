@@ -1,22 +1,17 @@
-const CACHE_NAME = "km-app-v1";
+const CACHE_NAME = "km-app-v2"; // 👈 cambia versión
 
-const urlsToCache = [
-  "./",
-  "./index.html",
-  "./app.js",
-  "./manifest.json"
-];
+self.addEventListener("install", e => {
+  self.skipWaiting();
+});
 
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(urlsToCache))
+self.addEventListener("activate", e => {
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => caches.delete(key)))
+    )
   );
 });
 
-self.addEventListener("fetch", event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => response || fetch(event.request))
-  );
+self.addEventListener("fetch", e => {
+  e.respondWith(fetch(e.request));
 });
