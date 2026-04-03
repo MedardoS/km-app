@@ -153,3 +153,41 @@ async function generarExcel() {
     alert("❌ Error al generar Excel");
   }
 }
+
+async function eliminarRegistros() {
+  const usuario = obtenerUsuario()?.trim().toLowerCase();
+
+  if (!usuario) {
+    alert("No hay usuario");
+    return;
+  }
+
+  const confirmacion = confirm("⚠️ ¿Seguro que quieres eliminar TODOS tus registros?");
+
+  if (!confirmacion) return;
+
+  try {
+    const snapshot = await db.collection("recorridos")
+      .where("usuario", "==", usuario)
+      .get();
+
+    if (snapshot.empty) {
+      alert("No hay registros para eliminar");
+      return;
+    }
+
+    const batch = db.batch();
+
+    snapshot.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+
+    await batch.commit();
+
+    alert("🗑️ Registros eliminados correctamente");
+
+  } catch (error) {
+    console.error(error);
+    alert("❌ Error al eliminar");
+  }
+}
